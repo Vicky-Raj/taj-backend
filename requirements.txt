@@ -1,0 +1,8 @@
+Django
+djangorestframework
+whitenoise
+uuid
+requests
+django-cors-headers
+Pillow
+gunicorn
