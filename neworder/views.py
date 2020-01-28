@@ -343,6 +343,55 @@ class HistoryEstimatedView(APIView):
             }
         for order in orders])
 
+def create_customer_items(orders,customer_items):
+    items = {}
+    for order in orders:
+        items["name"] = order.customer.name
+        for order_item in order.ordered_items.all():
+            if order_item.item.tamil_name in items:
+                items[order_item.item.tamil_name] += order_item.quantity
+            else:
+                items[order_item.item.tamil_name] = order_item.quantity
+        
+        for order_subitem in order.ordered_subitems.all():
+            if order_subitem.subitem.tamil_name in items:
+                items[order_subitem.subitem.tamil_name] += order_subitem.quantity
+            else:
+                items[order_subitem.subitem.tamil_name] = order_subitem.quantity
+        customer_items.append(items.copy());
+        items.clear()
+
+class ViewOrderItemsandCustomersView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get(self,request):
+        all_customer_items= []
+        fn_customer_items= []
+        an_customer_items = []
+        evening_customer_items = []
+
+        fn_items = Order.objects.filter(
+            date_of_delivery=parse(request.GET.get("date")),
+            session="FN"
+        )
+        an_items = Order.objects.filter(
+            date_of_delivery=parse(request.GET.get("date")),
+            session="AN"
+        )
+        evening_items = Order.objects.filter(
+            date_of_delivery=parse(request.GET.get("date")),
+            session="EVENING"
+        )
+        create_customer_items(fn_items,fn_customer_items)
+        create_customer_items(an_items,an_customer_items)
+        create_customer_items(evening_items,evening_customer_items)
+
+        return Response({
+            "fn":fn_customer_items,
+            "an":an_customer_items,
+            "evening":evening_customer_items,
+        })
+
 
 class HistoryOrderView(APIView):
     permission_classes = (AllowAny,)

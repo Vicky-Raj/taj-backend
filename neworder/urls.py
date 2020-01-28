@@ -5,6 +5,7 @@ urlpatterns = [
     path('order/', views.OrderView.as_view()),
     path("vieworder/customer/",views.ViewOrderCustomer.as_view()),
     path("vieworder/items/",views.ViewOrderItems.as_view()),
+    path("vieworder/customer_items/",views.ViewOrderItemsandCustomersView.as_view()),
     path("history/estimated/",views.HistoryEstimatedView.as_view()),
     path("history/order/",views.HistoryOrderView.as_view())
 ]
