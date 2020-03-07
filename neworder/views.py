@@ -27,23 +27,22 @@ class ItemView(APIView):
     # Get Items
 
     def get(self, request):
+        items = {}
+        subitems = {}
+        for item in Items.objects.all():
+            items[item.name] = {
+                "unique_id":item.unique_id,
+                "price":item.price,
+                "subitems":[subitem.name for subitem in item.subitems.all()]
+            }
+        for subitem in SubItems.objects.all():
+            subitems[subitem.name] = {
+                "unique_id":subitem.unique_id,
+                "price":subitem.price
+            }
         return Response({
-            "items":[
-            {
-                'unique_id': item.unique_id,
-                'name': item.name,
-                'price': str(item.price),
-                'subitems': [subitem.name for subitem in item.subitems.all()]
-            }
-            for item in Items.objects.all()],
-            
-            "subitems":[
-            {
-                'unique_id': subitem.unique_id,
-                'name': subitem.name,
-                'price': str(subitem.price),
-            }
-            for subitem in SubItems.objects.all()]
+            "items":items,
+            "subitems":subitems
         })
     # Post New Item
 
