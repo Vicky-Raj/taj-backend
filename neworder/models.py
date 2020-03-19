@@ -63,6 +63,8 @@ class Order(models.Model):
     invoice_no = models.TextField()
     session = models.TextField(null=True)
     confirmed = models.BooleanField(default=False)
+    hasGst = models.BooleanField(default=False)
+    gst = models.TextField(null=True)
     ordered_items = models.ManyToManyField(OrderItem)
     ordered_subitems = models.ManyToManyField(OrderSubItem)
     customer = models.ForeignKey(CustomerDetails, on_delete=models.CASCADE)

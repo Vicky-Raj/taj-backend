@@ -139,15 +139,18 @@ class OrderView(APIView):
 
         
         info = json.loads(request.body)
+        print(info)
         order = Order()
         order.invoice_no = f"{uuid.uuid4().time}"
-        order.total = int(info["total"])
-        order.paid_amount = int(info["advance"])
-        order.balance = int(info["balance"])
-        order.paid = int(info["balance"]) == 0
+        order.total = float(info["total"])
+        order.paid_amount = float(info["advance"])
+        order.balance = float(info["balance"])
+        order.paid = float(info["balance"]) == 0
         order.date_of_delivery = parse(info["customer"]["date"])
         order.session = info["customer"]["session"]
         order.confirmed = info["confirm"]
+        order.gst = info["gst"]
+        order.hasGst = info["hasGst"]
         customer = CustomerDetails()
         customer.u_id = f"{uuid.uuid4()}"
         customer.name = info["customer"]["name"]
@@ -158,24 +161,24 @@ class OrderView(APIView):
         order.customer = customer
         order.save()
         for item in info["items"]:
-            current_item = get_object_or_404(Items,unique_id=item["unique_id"])
-            order_item = OrderItem()
-            order_item.item = current_item
-            order_item.quantity = int(item["quantity"])
-            order_item.total_price = int(item["amount"])
-            order_item.save()
-            order.ordered_items.add(order_item)
-            order.save()
-
-        for sub_item in info["subItems"]:
-            current_sub_item = get_object_or_404(SubItems,unique_id=sub_item["unique_id"])
-            order_sub_item = OrderSubItem()
-            order_sub_item.subitem = current_sub_item
-            order_sub_item.quantity = int(sub_item["quantity"])
-            order_sub_item.total_price = int(sub_item["amount"])
-            order_sub_item.save()
-            order.ordered_subitems.add(order_sub_item)
-            order.save()
+            current_item = Items.objects.filter(unique_id=item["unique_id"]).first()
+            if not current_item:
+                current_sub_item = SubItems.objects.filter(unique_id=item["unique_id"]).first()
+                order_sub_item = OrderSubItem()
+                order_sub_item.subitem = current_sub_item
+                order_sub_item.quantity = float(item["quantity"])
+                order_sub_item.total_price = float(item["amount"])
+                order_sub_item.save()
+                order.ordered_subitems.add(order_sub_item)
+                order.save()
+            else:
+                order_item = OrderItem()
+                order_item.item = current_item
+                order_item.quantity = float(item["quantity"])
+                order_item.total_price = float(item["amount"])
+                order_item.save()
+                order.ordered_items.add(order_item)
+                order.save()
 
         writecsv.write_order_csv(
             {
