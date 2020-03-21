@@ -333,7 +333,8 @@ class HistoryEstimatedView(APIView):
     def get(self,request):
         orders = Order.objects.filter(
             confirmed = False,
-            date_of_delivery=parse(request.GET.get("date"))
+            # date_of_delivery__lte= datetime.date.today,
+            date_of_delivery = parse(request.GET.get("date"))
         )
         return Response([   
             {
@@ -397,15 +398,17 @@ class ViewOrderItemsandCustomersView(APIView):
 
 class HistoryOrderView(APIView):
     permission_classes = (AllowAny,)
-
+    
     def get(self,request):
+        print(request.GET["date"])
         orders = Order.objects.filter(
             confirmed = True,
+            # date_of_delivery__lte= datetime.date.today,
             paid=True,
             returned_vessel=True,
             date_of_delivery=parse(request.GET.get("date"))
         )
-
+        print(orders)
         return Response([
             {
                 "name":order.customer.name,
@@ -415,6 +418,107 @@ class HistoryOrderView(APIView):
                 "date_placed":order.date_placed,
                 "date_of_delivery":order.date_of_delivery,
                 "paid":order.paid,
+                "hasGst":order.hasGst,
+                "gst":order.gst,
+                "returned_vessel":order.returned_vessel
+            }
+        for order in orders])
+
+class HistoryAllOrder(APIView):
+    permission_classes = (AllowAny,)
+    
+    def get(self,request):
+        print(request.GET["gst"])
+        if(string_to_bool(request.GET.get("gst"))):
+            print("entered if")
+            orders = Order.objects.filter(
+                confirmed = True,
+                date_of_delivery__lte= datetime.date.today(),
+                hasGst = True,
+            )
+        else:
+            orders = Order.objects.filter(
+                confirmed = True,
+                date_of_delivery__lte= datetime.date.today(),
+            )
+        return Response([
+            {
+                "name":order.customer.name,
+                "invoice_no":order.invoice_no,
+                "session":order.session,
+                "phone_num":order.customer.phone_number,
+                "date_placed":order.date_placed,
+                "date_of_delivery":order.date_of_delivery,
+                "paid":order.paid,
+                "hasGst":order.hasGst,
+                "gst":order.gst,
+                "returned_vessel":order.returned_vessel
+            }
+        for order in orders])
+
+class HistoryDateOrder(APIView):
+    permission_classes = (AllowAny,)
+    
+    def get(self,request):
+        if(string_to_bool(request.GET.get("gst"))):
+            orders = Order.objects.filter(
+                confirmed = True,
+                hasGst = True,
+                date_of_delivery__lte= datetime.date.today(),
+                date_of_delivery=parse(request.GET.get("date"))
+            )
+        else:
+            orders = Order.objects.filter(
+                confirmed = True,
+                date_of_delivery__lte= datetime.date.today(),
+                date_of_delivery=parse(request.GET.get("date"))
+            )
+        return Response([
+            {
+                "name":order.customer.name,
+                "invoice_no":order.invoice_no,
+                "session":order.session,
+                "phone_num":order.customer.phone_number,
+                "date_placed":order.date_placed,
+                "date_of_delivery":order.date_of_delivery,
+                "paid":order.paid,
+                "hasGst":order.hasGst,
+                "gst":order.gst,
+                "returned_vessel":order.returned_vessel
+            }
+        for order in orders])
+
+class HistoryRangeOrder(APIView):
+    permission_classes = (AllowAny,)
+    
+    def get(self,request):
+        start_date = parse(request.GET.get("from")),
+        end_date = parse(request.GET.get("to")), 
+        if(string_to_bool(request.GET.get("gst"))):
+            orders = Order.objects.filter(
+                confirmed = True,
+                hasGst = True,
+                date_of_delivery__lte= datetime.date.today(),
+                date_of_delivery__range=(start_date[0].date(),end_date[0].date()),           
+            )
+        else:
+            orders = Order.objects.filter(
+                confirmed = True,                
+                date_of_delivery__lte= datetime.date.today(),
+                date_of_delivery__range=(start_date[0].date(),end_date[0].date()),           
+            )
+            print(orders)
+        return Response([
+            {
+                "name":order.customer.name,
+                "invoice_no":order.invoice_no,
+                "session":order.session,
+                "phone_num":order.customer.phone_number,
+                "date_placed":order.date_placed,
+                "date_of_delivery":order.date_of_delivery,
+                "paid":order.paid,
+                "hasGst":order.hasGst,
+                "gst":order.gst,
                 "returned_vessel":order.returned_vessel
             }
         for order in orders])
