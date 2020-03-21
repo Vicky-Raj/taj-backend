@@ -64,7 +64,7 @@ class Order(models.Model):
     session = models.TextField(null=True)
     confirmed = models.BooleanField(default=False)
     hasGst = models.BooleanField(default=False)
-    gst = models.TextField(null=True)
+    gst = models.TextField(null=True,blank=True)
     ordered_items = models.ManyToManyField(OrderItem)
     ordered_subitems = models.ManyToManyField(OrderSubItem)
     customer = models.ForeignKey(CustomerDetails, on_delete=models.CASCADE)
